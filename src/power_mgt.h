@@ -59,18 +59,18 @@ void delay_at_max_brightness_for_power( uint16_t ms);
 uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds);
 
 /// calculate_max_brightness_for_power_mW tells you the highest brightness
-///   level you can use and still stay under the specified power budget for 
+///   level you can use and still stay under the specified power budget for
 ///   a given set of leds.  It takes a pointer to an array of CRGB objects, a
 ///   count, a 'target brightness' which is the brightness you'd ideally like
-///   to use, and the max power draw desired in milliwatts.  The result from 
+///   to use, and the max power draw desired in milliwatts.  The result from
 ///   this function will be no higher than the target_brightess you supply, but may be lower.
 uint8_t calculate_max_brightness_for_power_mW(const CRGB* ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_mW);
 
 /// calculate_max_brightness_for_power_mW tells you the highest brightness
-///   level you can use and still stay under the specified power budget for 
+///   level you can use and still stay under the specified power budget for
 ///   a given set of leds.  It takes a pointer to an array of CRGB objects, a
 ///   count, a 'target brightness' which is the brightness you'd ideally like
-///   to use, and the max power in volts and milliamps.  The result from this 
+///   to use, and the max power in volts and milliamps.  The result from this
 ///   function will be no higher than the target_brightess you supply, but may be lower.
 uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_V, uint32_t max_power_mA);
 
@@ -80,6 +80,13 @@ uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, uint16_t n
 ///   to use.  The result from this function will be no higher than the
 ///   target_brightess you supply, but may be lower.
 uint8_t  calculate_max_brightness_for_power_mW( uint8_t target_brightness, uint32_t max_power_mW);
+
+// set power consumption in milliwatt per color for 256 LEDs
+void set_power_consumption(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW);
+
+using PowerCalcCallback = std::function<void(uint32_t total_mW, uint32_t requested_mW, uint32_t max_mW, uint8_t target_brightness, uint8_t recommended_brightness)>;
+
+void set_power_calc_callback(PowerCalcCallback callback);
 
 FASTLED_NAMESPACE_END
 ///@}
