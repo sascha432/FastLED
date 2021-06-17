@@ -3,7 +3,7 @@ Modifications
 
 ## Compiler
 
-Tested with toolchain-xtensa 2.100200.0 (10.2.0)
+Tested with toolchain-xtensa 2.100200.0 (10.2.0) and toolchain-xtensa 2.40802.200502 (4.8.2)
 
 ## Reset maximum power limit
 
