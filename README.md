@@ -30,10 +30,14 @@ inline void setPowerConsumptionInMilliwattsPer256(uint16_t red_mW, uint16_t gree
 // blue  = 20379mW / 256 / 5V = 15.92mA + idle
 // idle  = 1039mW / 256 / 5V = 0.81mA
 
-These numbers are pretty close the datasheet, which specifies 16.5/17.5mA (WS2813/WS2812B) per color at full brightness.
-
 FastLED.setPowerConsumptionInMilliwattsPer256(20418, 20470, 20379, 1039);
 ```
+
+These numbers are pretty close the datasheet, which specifies 16.5/17.5mA (WS2813/WS2812B) per color at full brightness.
+
+**NOTE**: When testing your LEDs, make sure your power supply can handle the transients. I have seen voltage spikes up to 8-9V on the 5V rail switching from 7A to 0A. Ramping down the power slowly within 50-100ms will avoid these issues.
+If such sudden changes are required, a snubber network and/or a zener diode that can handle the overvoltage will protect the LEDs and other devices on the 5V rail.
+
 
 ## Measurinng the power
 
@@ -60,6 +64,16 @@ void _calcAveragePowerLevel()
 	// integrate _powerLevelCurrentmW into average value...
 }
 ```
+
+## Working implementation with more features
+
+
+A full implementation of the new features can be found at the Clock/LED matrix plugin of the KFC firmware
+
+https://github.com/sascha432/esp8266-kfc-fw
+https://github.com/sascha432/esp8266-kfc-fw/blob/master/src/plugins/clock/seven_segment_display.h
+https://github.com/sascha432/esp8266-kfc-fw/tree/master/src/plugins/clock
+
 
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/FastLED/public)
