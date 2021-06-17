@@ -1,3 +1,67 @@
+Modifications
+=============
+
+## Compiler
+
+Tested with toolchain-xtensa 2.100200.0 (10.2.0)
+
+## Reset maximum power limit
+
+To remove the power limit, set it to 0. It will not use any CPU cycles compared to setting an arbitrary high value.
+
+```c++
+FastLED.setMaxPowerInMilliWatts(0);
+```
+
+## Change power consumption per LED color
+
+The amount is set in milliwatts per color for 256 LEDs turned to full brightness. The idle amount is measured with 0% brightness and added to each color.
+
+The power was measured with an INA219 current sensor at the output of the buck regulator and there are no losses expect for the wiring.
+The panel was a flexible 16x16 LED matrix with WS2812B, a decent amount of copper traces and 3 evenly spread connections to 5V.
+
+The additional 125mW that has been added for the CPU has been removed.
+
+```c++
+inline void setPowerConsumptionInMilliwattsPer256(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW);
+
+// red   = 20418mW / 256 / 5V = 15.9mA + idle
+// green = 20470mW / 256 / 5V = 15.99mA + idle
+// blue  = 20379mW / 256 / 5V = 15.92mA + idle
+// idle  = 1039mW / 256 / 5V = 0.81mA
+
+These numbers are pretty close the datasheet, which specifies 16.5/17.5mA (WS2813/WS2812B) per color at full brightness.
+
+FastLED.setPowerConsumptionInMilliwattsPer256(20418, 20470, 20379, 1039);
+```
+
+## Measurinng the power
+
+To measure the power, the function to calculate the power can be set and call the original function to intercept the results.
+
+```c++
+FastLED.setMaxPowerInMilliWatts(_config.power_limit * 1000, &calcPowerFunction);
+
+uint32_t _powerLevelCurrentmW;
+
+uint8_t _calcPowerFunction(uint8_t targetBrightness, uint32_t maxPower_mW)
+{
+	uint32_t requestedPower_mW;
+	// call original function to calculate the power
+	uint8_t newBrightness = _calculate_max_brightness_for_power_mW(targetBrightness, maxPower_mW, requestedPower_mW);
+	// if the returned brightness does not match targetBrightness, maxPower_mW is used, otherwise requestedPower_mW
+	_powerLevelCurrentmW = (targetBrightness == newBrightness) ? requestedPower_mW : maxPower_mW;
+	_calcAveragePowerLevel();
+	return newBrightness;
+}
+
+void _calcAveragePowerLevel()
+{
+	// integrate _powerLevelCurrentmW into average value...
+}
+```
+
+
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/FastLED/public)
 [![arduino-library-badge](https://www.ardu-badge.com/badge/FastLED.svg)](https://www.ardu-badge.com/FastLED)
 ![build status](https://github.com/FastLED/FastLED/workflows/build/badge.svg)

@@ -8,6 +8,8 @@
 #define FASTLED_HAS_PRAGMA_MESSAGE
 #endif
 
+#pragma GCC diagnostic ignored "-Wregister"
+
 #define FASTLED_VERSION 3004000
 #ifndef FASTLED_INTERNAL
 #  ifdef FASTLED_HAS_PRAGMA_MESSAGE
@@ -490,15 +492,39 @@ public:
 
 	/// Set the maximum power to be used, given in milliwatts
 	/// @param milliwatts - the max power draw desired, in milliwatts
-	inline void setMaxPowerInMilliWatts(uint32_t milliwatts) {
-		if (milliwatts) {
-			m_pPowerFunc = &calculate_max_brightness_for_power_mW;
-			m_nPowerData = milliwatts;
+	inline void setMaxPowerInMilliWatts(uint32_t milliwatts, power_func customPowerFunc = nullptr) {
+        if (customPowerFunc) {
+            m_pPowerFunc = customPowerFunc;
+			if (!milliwatts) {
+				milliwatts = ~0U;
+			}
+        }
+		else if (milliwatts) {
+            m_pPowerFunc = &calculate_max_brightness_for_power_mW;
 		}
 		else {
 			m_pPowerFunc = nullptr;
 		}
+    	m_nPowerData = milliwatts;
 	}
+
+	// return reference to the pointer of the power function
+	power_func &getPowerFunction() {
+		return m_pPowerFunc;;
+	}
+
+	// Set power consumption per LED color at full brightness and idle
+	// The value is per color for 256 LEDs in milliwatts
+	// For example: red_mW=20864mW / 256 / 5V = 16.3mA + idle_mW=1060mW / 256 / 5V = 0.828125mA = ~17.13mA at full brightness
+	// The power was measured at the input of a buck converter with an efficiency of 85-87% @3A-5A and another 10-12% loss in the wiring
+	/// @param red_mW power consumption for the color red
+	/// @param green_mW power consumption for the color green
+	/// @param blue_mW power consumption for the color blue
+	/// @param idle_mW power consumption with 0 brightness (this value is added to each color)
+	inline void setPowerConsumptionInMilliwattsPer256(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW) {
+		set_power_consumption(red_mW, green_mW, blue_mW, idle_mW);
+	}
+
 
 	/// Update all our controllers with the current led colors, using the passed in brightness
 	/// @param scale temporarily override the scale

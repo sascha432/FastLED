@@ -79,14 +79,16 @@ uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, uint16_t n
 ///   takes a 'target brightness' which is the brightness you'd ideally like
 ///   to use.  The result from this function will be no higher than the
 ///   target_brightess you supply, but may be lower.
-uint8_t  calculate_max_brightness_for_power_mW( uint8_t target_brightness, uint32_t max_power_mW);
+uint8_t _calculate_max_brightness_for_power_mW(uint8_t target_brightness, uint32_t max_power_mW, uint32_t &requested_power_mW);
+
+static inline uint8_t calculate_max_brightness_for_power_mW(uint8_t target_brightness, uint32_t max_power_mW)
+{
+    uint32_t requested_power_mW;
+    return _calculate_max_brightness_for_power_mW(target_brightness, max_power_mW, requested_power_mW);
+}
 
 // set power consumption in milliwatt per color for 256 LEDs
 void set_power_consumption(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW);
-
-using PowerCalcCallback = std::function<void(uint32_t total_mW, uint32_t requested_mW, uint32_t max_mW, uint8_t target_brightness, uint8_t recommended_brightness)>;
-
-void set_power_calc_callback(PowerCalcCallback callback);
 
 FASTLED_NAMESPACE_END
 ///@}

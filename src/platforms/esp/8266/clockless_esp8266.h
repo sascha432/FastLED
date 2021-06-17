@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+
 FASTLED_NAMESPACE_BEGIN
 
 #ifdef FASTLED_DEBUG_COUNT_FRAME_RETRIES
@@ -70,7 +72,7 @@ protected:
 
 	// This method is made static to force making register Y available to use for data on AVR - if the method is non-static, then
 	// gcc will use register Y for the this pointer.
-	static uint32_t ICACHE_RAM_ATTR showRGBInternal(PixelController<RGB_ORDER> pixels) {
+	static uint32_t IRAM_ATTR showRGBInternal(PixelController<RGB_ORDER> pixels) {
 		// Setup the pixel controller and load/scale the first byte
 		pixels.preStepFirstByteDithering();
 		register uint32_t b = pixels.loadAndScale0();
