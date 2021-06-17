@@ -39,7 +39,7 @@ These numbers are pretty close the datasheet, which specifies 16.5/17.5mA (WS281
 If such sudden changes are required, a snubber network and/or a zener diode that can handle the overvoltage will protect the LEDs and other devices on the 5V rail.
 
 
-## Measurinng the power
+## Measuring the power
 
 To measure the power, the function to calculate the power can be set and call the original function to intercept the results.
 
