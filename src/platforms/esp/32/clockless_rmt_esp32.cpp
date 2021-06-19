@@ -42,7 +42,8 @@ int ESP32RMTController::gMemBlocks;
 ESP32RMTController::ESP32RMTController(int DATA_PIN, int T1, int T2, int T3, int maxChannel, int memBlocks)
     : mPixelData(0), 
       mSize(0), 
-      mCur(0), 
+      mCur(0),
+      mBufSize(0), 
       mWhichHalf(0),
       mBuffer(0),
       mBufferSize(0),
@@ -86,10 +87,19 @@ ESP32RMTController::ESP32RMTController(int DATA_PIN, int T1, int T2, int T3, int
 //    the PixelController object until show is called.
 uint8_t * ESP32RMTController::getPixelBuffer(int size_in_bytes)
 {
-    if (mPixelData == 0) {
-        mSize = size_in_bytes;
-        mPixelData = (uint8_t *) malloc(mSize);
+    // -- Free the old buffer if it will be too small
+    if (mPixelData != 0 and mBufSize < size_in_bytes) {
+        free(mPixelData);
+        mPixelData = 0;
     }
+
+    if (mPixelData == 0) {
+        mBufSize = size_in_bytes;
+        mPixelData = (uint8_t *) malloc(mBufSize);
+    }
+
+    mSize = size_in_bytes;
+
     return mPixelData;
 }
 
@@ -328,7 +338,11 @@ void IRAM_ATTR ESP32RMTController::interruptHandler(void *arg)
 
     for (channel = 0; channel < gMaxChannel; channel++) {
         int tx_done_bit = channel * 3;
+        #ifdef CONFIG_IDF_TARGET_ESP32S2
+        int tx_next_bit = channel + 12;
+        #else
         int tx_next_bit = channel + 24;
+        #endif
 
         ESP32RMTController * pController = gOnChannel[channel];
         if (pController != NULL) {
