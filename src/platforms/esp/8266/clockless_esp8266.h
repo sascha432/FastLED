@@ -84,7 +84,6 @@ protected:
 			while ((__clock_cycles() - last_mark) < (T1 + T2)) ;
 			FastPin<DATA_PIN>::lo();
 
-#if defined(ESP8266)
 			// even with interrupts disabled, the NMI interupt seems to cause
 			// timing issues here. abort the frame if one bit took to long. if the
 			// last of the 24 bits has been sent already, it is too late
@@ -96,7 +95,6 @@ protected:
 				// DEBUG_TOGGLE_PIN(15);
 				return true;
 			}
-#endif
 		}
 		return false;
 	}
@@ -131,25 +129,19 @@ protected:
 			while (pixels.has(1)) {
 				// Write first byte, read next byte
 				if (writeBits<8 + XTRA0>(last_mark, b)) {
-#if defined(ESP8266)
 					return 0;
-#endif
 				}
 				b = pixels.loadAndScale1();
 
 				// Write second byte, read 3rd byte
 				if (writeBits<8 + XTRA0>(last_mark, b)) {
-#if defined(ESP8266)
 					return 0;
-#endif
 				}
 				b = pixels.loadAndScale2();
 
 				// Write third byte, read 1st byte of next pixel
 				if (writeBits<8 + XTRA0>(last_mark, b)) {
-#if defined(ESP8266)
 					return 0;
-#endif
 				}
 
 #if (FASTLED_ALLOW_INTERRUPTS == 1)
