@@ -89,10 +89,13 @@ protected:
 			// last of the 24 bits has been sent already, it is too late
 			// this fixes the flickering first pixel that started to occur with
 			// framework version 3.0.0
-			if (1 && (__clock_cycles() - last_mark) >= (T1 + T2 + T3 - 5))
+			if ((__clock_cycles() - last_mark) >= (T1 + T2 + T3 - 5))
 			{
 				// DEBUG_TOGGLE_PIN_INIT(15, true);
 				// DEBUG_TOGGLE_PIN(15);
+				os_intr_unlock();
+				delayMicroseconds(WAIT_TIME);
+				os_intr_lock();
 				return true;
 			}
 		}
