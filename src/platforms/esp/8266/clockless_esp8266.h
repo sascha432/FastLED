@@ -55,15 +55,7 @@ protected:
 #define _ESP_ADJ (0)
 #define _ESP_ADJ2 (0)
 
-	template<int BITS> __attribute__ ((always_inline)) inline static bool writeBits(register uint32_t & last_mark, register uint32_t b)  {
-    b <<= 24; b = ~b;
-    for(register uint32_t i = BITS; i > 0; --i) {
-      while((__clock_cycles() - last_mark) < (T1+T2+T3));
-			last_mark = __clock_cycles();
-      FastPin<DATA_PIN>::hi();
-
-	template <int BITS>
-	__attribute__((always_inline)) inline static bool writeBits(register uint32_t &last_mark, register uint32_t b)
+	template<int BITS> __attribute__ ((always_inline)) inline static bool writeBits(register uint32_t & last_mark, register uint32_t b)
 	{
 		b <<= 24;
 		b = ~b;
@@ -72,8 +64,14 @@ protected:
 			last_mark = __clock_cycles();
 			FastPin<DATA_PIN>::hi();
 
-      while((__clock_cycles() - last_mark) < (T1+T2));
-      FastPin<DATA_PIN>::lo();
+			while((__clock_cycles() - last_mark) < T1) ;
+			if (b & 0x80000000L) {
+				FastPin<DATA_PIN>::lo();
+			}
+			b <<= 1;
+
+			while((__clock_cycles() - last_mark) < (T1 + T2)) ;
+			FastPin<DATA_PIN>::lo();
 
 			// even with interrupts disabled, the NMI interupt seems to cause
 			// timing issues here. abort the frame if one bit took to long. if the
@@ -93,9 +91,8 @@ protected:
 	{
 		// Setup the pixel controller and load/scale the first byte
 		pixels.preStepFirstByteDithering();
-		// DEBUG_TOGGLE_PIN_INIT(14, true);
 		register uint32_t b = pixels.loadAndScale0();
-    pixels.preStepFirstByteDithering();
+		pixels.preStepFirstByteDithering();
 		uint32_t start;
 		{
 			struct Lock {
