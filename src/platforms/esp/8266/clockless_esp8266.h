@@ -1,7 +1,5 @@
 #pragma once
 
-// #pragma GCC diagnostic ignored "-Wmisleading-indentation"
-
 FASTLED_NAMESPACE_BEGIN
 
 #ifdef FASTLED_DEBUG_COUNT_FRAME_RETRIES
@@ -19,7 +17,11 @@ __attribute__((always_inline)) inline static uint32_t __clock_cycles()
 
 #define FASTLED_HAS_CLOCKLESS 1
 
-template <int DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 85>
+#ifndef FASTLED_WAIT_TIME
+#define FASTLED_WAIT_TIME 85
+#endif
+
+template <int DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = FASTLED_WAIT_TIME>
 class ClocklessController : public CPixelLEDController<RGB_ORDER> {
     typedef typename FastPin<DATA_PIN>::port_ptr_t data_ptr_t;
     typedef typename FastPin<DATA_PIN>::port_t data_t;
