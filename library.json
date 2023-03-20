@@ -6,34 +6,34 @@
         {
             "name": "Daniel Garcia",
             "url": "https://github.com/focalintent",
-            "maintainer": true
+            "maintainer": false
         },
         {
             "name": "Mark Kriegsman",
             "url": "https://github.com/kriegsman",
-            "maintainer": true
+            "maintainer": false
         },
         {
             "name": "Sam Guyer",
             "url": "https://github.com/samguyer",
-            "maintainer": true
+            "maintainer": false
         },
         {
             "name": "Jason Coon",
             "url": "https://github.com/jasoncoon",
-            "maintainer": true
+            "maintainer": false
         },
         {
-            "name": "Josh Huber",
-            "url": "https://github.com/uberjay",
+            "name": "Sascha Lammers",
+            "url": "https://github.com/sascha432",
             "maintainer": true
         }
-    ],
+],
     "repository": {
         "type": "git",
         "url": "https://github.com/sascha432/FastLED.git"
     },
-    "version": "3.4.0",
+    "version": "3.4.1",
     "license": "MIT",
     "homepage": "http://fastled.io",
     "frameworks": "arduino",
