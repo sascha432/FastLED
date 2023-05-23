@@ -10,7 +10,7 @@
 class ESP32RMTController;
 
 // -- Array of all controllers
-//    This array is filled at the time controllers are registered 
+//    This array is filled at the time controllers are registered
 //    (Usually when the sketch calls addLeds)
 static ESP32RMTController * gControllers[FASTLED_RMT_MAX_CONTROLLERS];
 
@@ -40,10 +40,10 @@ int ESP32RMTController::gMemBlocks;
 
 
 ESP32RMTController::ESP32RMTController(int DATA_PIN, int T1, int T2, int T3, int maxChannel, int memBlocks)
-    : mPixelData(0), 
-      mSize(0), 
+    : mPixelData(0),
+      mSize(0),
       mCur(0),
-      mBufSize(0), 
+      mBufSize(0),
       mWhichHalf(0),
       mBuffer(0),
       mBufferSize(0),
@@ -143,7 +143,7 @@ void ESP32RMTController::init(gpio_num_t pin)
         gTX_sem = xSemaphoreCreateBinary();
         xSemaphoreGive(gTX_sem);
     }
-                
+
     if ( ! FASTLED_RMT_BUILTIN_DRIVER) {
         // -- Allocate the interrupt if we have not done so yet. This
         //    interrupt handler must work for all different kinds of
@@ -240,7 +240,7 @@ void IRAM_ATTR ESP32RMTController::startOnChannel(int channel)
     gOnChannel[channel] = this;
 
     // -- Assign the pin to this channel
-    rmt_set_pin(mRMT_channel, RMT_MODE_TX, mPin);
+    rmt_set_gpio(mRMT_channel, RMT_MODE_TX, mPin, false);
 
     if (FASTLED_RMT_BUILTIN_DRIVER) {
         // -- Use the built-in RMT driver to send all the data in one shot
@@ -283,7 +283,7 @@ void IRAM_ATTR ESP32RMTController::tx_start()
     mLastFill = __clock_cycles();
 }
 
-// -- A controller is done 
+// -- A controller is done
 //    This function is called when a controller finishes writing
 //    its data. It is called either by the custom interrupt
 //    handler (below), or as a callback from the built-in
@@ -324,7 +324,7 @@ void IRAM_ATTR ESP32RMTController::doneOnChannel(rmt_channel_t channel, void * a
         }
     }
 }
-    
+
 // -- Custom interrupt handler
 //    This interrupt handler handles two cases: a controller is
 //    done writing its data, or a controller needs to fill the
@@ -404,8 +404,8 @@ void IRAM_ATTR ESP32RMTController::fillNext(bool check_time)
             // -- Get the next four bytes of pixel data
             register uint32_t pixeldata = mPixelData[mCur] << 24;
             mCur++;
-            
-            // Shift bits out, MSB first, setting RMTMEM.chan[n].data32[x] to the 
+
+            // Shift bits out, MSB first, setting RMTMEM.chan[n].data32[x] to the
             // rmt_item32_t value corresponding to the buffered bit value
             for (register uint32_t j = 0; j < 8; j++) {
                 *pItem++ = (pixeldata & 0x80000000L) ? one_val : zero_val;
@@ -433,7 +433,7 @@ void IRAM_ATTR ESP32RMTController::fillNext(bool check_time)
 
 // -- Init pulse buffer
 //    Set up the buffer that will hold all of the pulse items for this
-//    controller. 
+//    controller.
 //    This function is only used when the built-in RMT driver is chosen
 void ESP32RMTController::initPulseBuffer(int size_in_bytes)
 {
