@@ -166,10 +166,7 @@ void ESP32RMTController::deinit()
     }
 
     if ( ! FASTLED_RMT_BUILTIN_DRIVER) {
-        // -- Allocate the interrupt if we have not done so yet. This
-        //    interrupt handler must work for all different kinds of
-        //    strips, so it delegates to the refill function for each
-        //    specific instantiation of ClocklessController.
+        // -- Deallocate the interrupt if we have one
         if (gRMT_intr_handle != NULL)
             esp_intr_free(gRMT_intr_handle);
             gRMT_intr_handle = NULL;
@@ -187,13 +184,12 @@ void ESP32RMTController::deinit()
         if (FASTLED_RMT_BUILTIN_DRIVER) {
             rmt_driver_uninstall(rmt_channel_t(i));
         } else {
-            // -- Set up the RMT to send 32 bits of the pulse buffer and then
-            //    generate an interrupt. When we get this interrupt we
-            //    fill the other part in preparation (like double-buffering)
+            // -- Disable the RMT transfer
             rmt_set_tx_thr_intr_en(rmt_channel_t(i), false, PULSES_PER_FILL);
         }
     }
 
+    // the next show() call will initialize the RMT controller again
     gInitialized = false;
     gNumStarted = 0;
 }
