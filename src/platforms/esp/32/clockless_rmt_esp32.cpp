@@ -30,7 +30,7 @@ static intr_handle_t gRMT_intr_handle = NULL;
 static xSemaphoreHandle gTX_sem = NULL;
 
 // -- Make sure we can't call show() too quickly
-CMinWait<50>   gWait;
+CMinWait<85>   gWait;
 
 static bool gInitialized = false;
 
@@ -172,12 +172,6 @@ void ESP32RMTController::deinit()
             gRMT_intr_handle = NULL;
     }
 
-    if (gTX_sem != NULL) {
-        xSemaphoreGive(gTX_sem);
-        vSemaphoreDelete(gTX_sem);
-        gTX_sem = NULL;
-    }
-
     for (int i = 0; i < gMaxChannel; i += gMemBlocks) {
         gOnChannel[i] = NULL;
 
@@ -187,6 +181,13 @@ void ESP32RMTController::deinit()
             // -- Disable the RMT transfer
             rmt_set_tx_thr_intr_en(rmt_channel_t(i), false, PULSES_PER_FILL);
         }
+    }
+
+    // release and delete semaphore
+    if (gTX_sem != NULL) {
+        xSemaphoreGive(gTX_sem);
+        vSemaphoreDelete(gTX_sem);
+        gTX_sem = NULL;
     }
 
     // the next show() call will initialize the RMT controller again
