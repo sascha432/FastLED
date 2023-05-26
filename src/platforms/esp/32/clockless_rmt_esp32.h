@@ -76,7 +76,7 @@
  *      processing is done up-front, in the templated class, so we
  *      can fill the RMT buffers more quickly.
  *
- *      IN THEORY, this design would also allow FastLED.show() to 
+ *      IN THEORY, this design would also allow FastLED.show() to
  *      send the data while the program continues to prepare the next
  *      frame of data.
  *
@@ -257,6 +257,9 @@ public:
     //    because we need to configure the RMT channels on the fly.
     static void init(gpio_num_t pin);
 
+    // -- Deinitialize RMT subsystem
+    static void deinit();
+
     // -- Show this string of pixels
     //    This is the main entry point for the pixel controller
     void IRAM_ATTR showPixels();
@@ -275,14 +278,14 @@ public:
     //    Setting this RMT flag is what actually kicks off the peripheral
     void IRAM_ATTR tx_start();
 
-    // -- A controller is done 
+    // -- A controller is done
     //    This function is called when a controller finishes writing
     //    its data. It is called either by the custom interrupt
     //    handler (below), or as a callback from the built-in
     //    interrupt handler. It is static because we don't know which
     //    controller is done until we look it up.
     static void IRAM_ATTR doneOnChannel(rmt_channel_t channel, void * arg);
-    
+
     // -- Custom interrupt handler
     //    This interrupt handler handles two cases: a controller is
     //    done writing its data, or a controller needs to fill the
@@ -299,7 +302,7 @@ public:
 
     // -- Init pulse buffer
     //    Set up the buffer that will hold all of the pulse items for this
-    //    controller. 
+    //    controller.
     //    This function is only used when the built-in RMT driver is chosen
     void initPulseBuffer(int size_in_bytes);
 

@@ -149,11 +149,53 @@ void ESP32RMTController::init(gpio_num_t pin)
         //    interrupt handler must work for all different kinds of
         //    strips, so it delegates to the refill function for each
         //    specific instantiation of ClocklessController.
-        if (gRMT_intr_handle == NULL)
+        if (gRMT_intr_handle == NULL) {
             esp_intr_alloc(ETS_RMT_INTR_SOURCE, ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_LEVEL3, interruptHandler, 0, &gRMT_intr_handle);
+        }
     }
 
     gInitialized = true;
+}
+
+void ESP32RMTController::deinit()
+{
+    if (!gInitialized) return;
+
+    if (gTX_sem) {
+        xSemaphoreTake(gTX_sem, portMAX_DELAY);
+    }
+
+    if ( ! FASTLED_RMT_BUILTIN_DRIVER) {
+        // -- Allocate the interrupt if we have not done so yet. This
+        //    interrupt handler must work for all different kinds of
+        //    strips, so it delegates to the refill function for each
+        //    specific instantiation of ClocklessController.
+        if (gRMT_intr_handle != NULL)
+            esp_intr_free(gRMT_intr_handle);
+            gRMT_intr_handle = NULL;
+    }
+
+    if (gTX_sem != NULL) {
+        xSemaphoreGive(gTX_sem);
+        vSemaphoreDelete(gTX_sem);
+        gTX_sem = NULL;
+    }
+
+    for (int i = 0; i < gMaxChannel; i += gMemBlocks) {
+        gOnChannel[i] = NULL;
+
+        if (FASTLED_RMT_BUILTIN_DRIVER) {
+            rmt_driver_uninstall(rmt_channel_t(i));
+        } else {
+            // -- Set up the RMT to send 32 bits of the pulse buffer and then
+            //    generate an interrupt. When we get this interrupt we
+            //    fill the other part in preparation (like double-buffering)
+            rmt_set_tx_thr_intr_en(rmt_channel_t(i), false, PULSES_PER_FILL);
+        }
+    }
+
+    gInitialized = false;
+    gNumStarted = 0;
 }
 
 // -- Show this string of pixels
