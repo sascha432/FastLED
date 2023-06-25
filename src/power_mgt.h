@@ -58,6 +58,12 @@ void delay_at_max_brightness_for_power( uint16_t ms);
 ///
 uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds);
 
+// get power for 0 brightness
+uint32_t calculate_idle_power_mW(uint16_t numLeds);
+
+// get idle power for all strips
+uint32_t calculate_idle_power_mW();
+
 /// calculate_max_brightness_for_power_mW tells you the highest brightness
 ///   level you can use and still stay under the specified power budget for
 ///   a given set of leds.  It takes a pointer to an array of CRGB objects, a
