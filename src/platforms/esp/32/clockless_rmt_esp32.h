@@ -346,9 +346,9 @@ protected:
         // -- Make sure the buffer is allocated
         int fill = 0;
         int size_in_bytes = pixels.size() * 3;
-        if (size_in_bytes < 8 * 3) { // min. pixels to send, otherwise the interrupt will be called too often
-            size_in_bytes = 8 * 3;
-            fill = 8 - pixels.size();
+        if (size_in_bytes < 16 * 3) { // min. pixels to send, otherwise the interrupt will be called too often
+            size_in_bytes = 16 * 3;
+            fill = 16 - pixels.size();
         }
         uint8_t * pData = mRMTController.getPixelBuffer(size_in_bytes);
 
