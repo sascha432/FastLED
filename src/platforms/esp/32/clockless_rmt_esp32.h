@@ -344,7 +344,12 @@ protected:
     void loadPixelData(PixelController<RGB_ORDER> & pixels)
     {
         // -- Make sure the buffer is allocated
+        int fill = 0;
         int size_in_bytes = pixels.size() * 3;
+        if (size_in_bytes < 8 * 3) { // min. pixels to send, otherwise the interrupt will be called too often
+            size_in_bytes = 8 * 3;
+            fill = 8 - pixels.size();
+        }
         uint8_t * pData = mRMTController.getPixelBuffer(size_in_bytes);
 
         // -- This might be faster
@@ -354,6 +359,11 @@ protected:
             *pData++ = pixels.loadAndScale2();
             pixels.advanceData();
             pixels.stepDithering();
+        }
+        while(fill--) {
+            *pData++ = 0;
+            *pData++ = 0;
+            *pData++ = 0;
         }
     }
 
