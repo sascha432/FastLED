@@ -28,6 +28,7 @@ CFastLED::CFastLED() {
 	m_nFPS = 0;
 	m_pPowerFunc = NULL;
 	m_nPowerData = 0xFFFFFFFF;
+    m_pPowerLimitScale = 1.0f;
 }
 
 CLEDController &CFastLED::addLeds(CLEDController *pLed,
@@ -49,8 +50,13 @@ void CFastLED::show(uint8_t scale) {
 
 	// If we have a function for computing power, use it!
 	if(m_pPowerFunc) {
+        auto tmp = scale;
 		scale = (*m_pPowerFunc)(scale, m_nPowerData);
+        m_pPowerLimitScale = scale == tmp ? 1.0f : scale / static_cast<float>(tmp);
 	}
+    else {
+        m_pPowerLimitScale = 1.0f;
+    }
 
 	CLEDController *pCur = CLEDController::head();
 	while(pCur) {
@@ -91,8 +97,13 @@ void CFastLED::showColor(const struct CRGB & color, uint8_t scale) {
 
 	// If we have a function for computing power, use it!
 	if(m_pPowerFunc) {
+        auto tmp = scale;
 		scale = (*m_pPowerFunc)(scale, m_nPowerData);
+        m_pPowerLimitScale = scale == tmp ? 1.0f : scale / static_cast<float>(tmp);
 	}
+    else {
+        m_pPowerLimitScale = 1.0f;
+    }
 
 	CLEDController *pCur = CLEDController::head();
 	while(pCur) {

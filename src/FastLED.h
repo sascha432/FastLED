@@ -185,6 +185,7 @@ class CFastLED {
 	uint32_t m_nMinMicros;		///< minimum µs between frames, used for capping frame rates.
 	uint32_t m_nPowerData;		///< max power use parameter
 	power_func m_pPowerFunc;	///< function for overriding brightness when using FastLED.show();
+    float m_pPowerLimitScale;
 
 public:
 	CFastLED();
@@ -509,8 +510,14 @@ public:
     	m_nPowerData = milliwatts;
 	}
 
+    inline float getPowerLimitScale() const
+    {
+        return m_pPowerLimitScale;
+    }
+
 	// return reference to the pointer of the power function
-	power_func &getPowerFunction() {
+	power_func &getPowerFunction()
+    {
 		return m_pPowerFunc;;
 	}
 
