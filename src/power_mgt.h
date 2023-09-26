@@ -27,7 +27,7 @@ void set_max_power_in_milliwatts( uint32_t powerInmW);
 // Power Control internal helper functions
 
 /// calculate_unscaled_power_mW tells you how many milliwatts the current
-///   LED data would draw at brightness = 255.
+///   LED data would draw at brightness = 255 without dark/idle power
 ///
 uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds);
 
