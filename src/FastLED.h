@@ -521,18 +521,21 @@ public:
 		return m_pPowerFunc;;
 	}
 
-	// Set power consumption per LED color at full brightness and idle
-	// The value is per color for 256 LEDs in milliwatts
-	// For example: red_mW=20864mW / 256 / 5V = 16.3mA + idle_mW=1060mW / 256 / 5V = 0.828125mA = ~17.13mA at full brightness
-	// The power was measured at the input of a buck converter with an efficiency of 85-87% @3A-5A and another 10-12% loss in the wiring
+	// Set power consumption per LED color at full brightness and idle in milliwatts
+	// For example: red_mW=5.0V * 256 * 16.3mA = 20864
 	/// @param red_mW power consumption for the color red
 	/// @param green_mW power consumption for the color green
 	/// @param blue_mW power consumption for the color blue
-	/// @param idle_mW power consumption with 0 brightness (this value is added to each color)
-	inline void setPowerConsumptionInMilliwattsPer256(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW) {
-		set_power_consumption(red_mW, green_mW, blue_mW, idle_mW);
+	/// @param idle_mW power consumption with 0 brightness
+	inline void setPowerConsumptionInMilliWattsPer256(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW) {
+		set_power_consumption_mW(red_mW, green_mW, blue_mW, idle_mW);
 	}
 
+	// Set power consumption per LED color at full brightness and idle
+    // If the voltage is not 5.0V, use setPowerConsumptionInMilliwattsPer256()
+	inline void setPowerConsumptionInMilliamps(uint16_t red_mA, uint16_t green_mA, uint16_t blue_mA, uint16_t idle_mA) {
+		set_power_consumption_mA(red_mA, green_mA, blue_mA, idle_mA);;
+	}
 
 	/// Update all our controllers with the current led colors, using the passed in brightness
 	/// @param scale temporarily override the scale

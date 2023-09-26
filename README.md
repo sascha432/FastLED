@@ -5,64 +5,91 @@ Modifications
 
 Tested with toolchain-xtensa 2.100200.0 (10.2.0) and toolchain-xtensa 2.40802.200502 (4.8.2)
 
-## Reset maximum power limit
+## Measure and change power consumption per LED
 
-To remove the power limit, set it to 0. It will not use any CPU cycles compared to setting an arbitrary high value.
+The amount is set in mW per color for 256 LEDs turned on to 100% brightness. The idle amount is measured with 0% brightness and subtracted from the power of each color
+
+To measure the idle power, turn all LEDs off and measure the voltage and current in mA
+
+```txt
+idle power = 5.0V * 0.81mA * 256 / number of LEDs
+```
+
+Repeat this step for each color at 100% brightness and subtract idle power
+
+*Note:* The voltage might drop a little depending on the number of LEDs
+
+```txt
+color power = (4.87V * 16.4mA * 256 / number of LEDs) - idle power
+```
+
+```c++
+// example for 256 WS2812B LEDs and the measured values
+// idle  = 1039
+// red   = (20864 - 1039) = 19825
+// green = (20992 - 1039) = 19953
+// blue  = (20736 - 1039) = 19697
+
+FastLED.setPowerConsumptionInMilliWattsPer256(19825, 19953, 19697, 1039);
+```
+
+## Limiting the power
+
+To limit the power, use `FastLED.setMaxPowerInMilliWatts()` and pass the maximum allowed power in mW
+
+```c++
+constexpr uint32_t kPowerLimit_mW = 5000;
+
+FastLED.setMaxPowerInMilliWatts(kPowerLimit_mW); // same as above
+```
+
+## Resetting the power limit
+
+To remove the power limit, set it to 0. It will not use any CPU cycles compared to setting an arbitrary high value
 
 ```c++
 FastLED.setMaxPowerInMilliWatts(0);
 ```
 
-## Change power consumption per LED color
-
-The amount is set in milliwatts per color for 256 LEDs turned to full brightness. The idle amount is measured with 0% brightness and added to each color.
-
-The power was measured with an INA219 current sensor at the output of the buck regulator and there are no losses expect for the wiring.
-The panel was a flexible 16x16 LED matrix with WS2812B, a decent amount of copper traces and 3 evenly spread connections to 5V.
-
-The additional 125mW that has been added for the CPU has been removed.
-
-```c++
-inline void setPowerConsumptionInMilliwattsPer256(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW);
-
-// red   = 20418mW / 256 / 5V = 15.9mA + idle
-// green = 20470mW / 256 / 5V = 15.99mA + idle
-// blue  = 20379mW / 256 / 5V = 15.92mA + idle
-// idle  = 1039mW / 256 / 5V = 0.81mA
-
-FastLED.setPowerConsumptionInMilliwattsPer256(20418, 20470, 20379, 1039);
-```
-
-These numbers are pretty close the datasheet, which specifies 16.5/17.5mA (WS2813/WS2812B) per color at full brightness.
-
-**NOTE**: When testing your LEDs, make sure your power supply can handle the transients. I have seen voltage spikes up to 8-9V on the 5V rail switching from 7A to 0A. Ramping down the power slowly within 50-100ms will avoid these issues.
-If such sudden changes are required, a snubber network and/or a zener diode that can handle the overvoltage will protect the LEDs and other devices on the 5V rail.
-
-
 ## Measuring the power
 
-To measure the power, the function to calculate the power can be set and call the original function to intercept the results.
+To measure the power, a custom function can be passed to `FastLED.setMaxPowerInMilliWatts()`. Each time FastLED.show() is called, the value will be updated
 
 ```c++
-FastLED.setMaxPowerInMilliWatts(_config.power_limit * 1000, &calcPowerFunction);
+#include <power_mgt.h>
 
-uint32_t _powerLevelCurrentmW;
+constexpr float kPowerLevelPeriodInSeconds = 2.0f;
+constexpr uint32_t kPowerLimit_mW = 5000;
 
-uint8_t _calcPowerFunction(uint8_t targetBrightness, uint32_t maxPower_mW)
+struct PowerLevelType {
+	float average_mW{0};
+	uint32_t current_mW{0};
+	uint32_t timer{0};
+};
+
+PowerLevelType _powerLevel = {};
+
+// reset average power consumption if FastLED.show() / myCalcPowerFunction has not been called for a while
+// after 4293 seconds, micros() will cause a second overflow
+void resetPowerLevel()
 {
-	uint32_t requestedPower_mW;
-	// call original function to calculate the power
-	uint8_t newBrightness = _calculate_max_brightness_for_power_mW(targetBrightness, maxPower_mW, requestedPower_mW);
-	// if the returned brightness does not match targetBrightness, maxPower_mW is used, otherwise requestedPower_mW
-	_powerLevelCurrentmW = (targetBrightness == newBrightness) ? requestedPower_mW : maxPower_mW;
-	_calcAveragePowerLevel();
+	_powerLevel = {};
+}
+
+// custom function to calculate the average power consumption
+uint8_t myCalcPowerFunction(uint8_t targetBrightness, uint32_t maxPower_mW)
+{
+	// call original function to calculate the power and brightness
+	uint8_t newBrightness = _calculate_max_brightness_for_power_mW(targetBrightness, maxPower_mW, _powerLevel.current_mW);
+	// integrate _powerLevel.current_mW into average value over kPowerLevelPeriodInSeconds
+	uint32_t timestamp = micros();
+	auto diff = _powerLevel.timer ? (kPowerLevelPeriodInSeconds * 500000.0f) / static_cast<float>(timestamp - _powerLevel.timer) : 0.0f;
+	_powerLevel.average_mW = ((_powerLevel.average_mW * diff) + _powerLevel.current_mW) / (diff + 1.0);
+	_powerLevel.timer = timestamp;
 	return newBrightness;
 }
 
-void _calcAveragePowerLevel()
-{
-	// integrate _powerLevelCurrentmW into average value...
-}
+FastLED.setMaxPowerInMilliWatts(kPowerLimit_mW, &myCalcPowerFunction);
 ```
 
 ## Working implementation with more features

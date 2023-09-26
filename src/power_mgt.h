@@ -58,16 +58,38 @@ uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, uint16_t n
 ///   takes a 'target brightness' which is the brightness you'd ideally like
 ///   to use.  The result from this function will be no higher than the
 ///   target_brightess you supply, but may be lower.
+///   requested_power_mW is set to total_power if the brightness is not reduced
 uint8_t _calculate_max_brightness_for_power_mW(uint8_t target_brightness, uint32_t max_power_mW, uint32_t &requested_power_mW);
 
-static inline uint8_t calculate_max_brightness_for_power_mW(uint8_t target_brightness, uint32_t max_power_mW)
+inline static uint8_t calculate_max_brightness_for_power_mW(uint8_t target_brightness, uint32_t max_power_mW)
 {
     uint32_t requested_power_mW;
     return _calculate_max_brightness_for_power_mW(target_brightness, max_power_mW, requested_power_mW);
 }
 
+// how to measure the power:
+//
+// idle power = measured voltage * idle current(mA) * 256 / number of LEDs tested
+// color power = (measured voltage * color current(mA) * 256 / number of LEDs tested) - idle power
+//
+//  the idle power:
+//   turn all LEDs off and measure current and voltage
+//  repeat this for each color
+//   turn brightness to 100% and measure current and voltage
+//   subtract the idle power from each value
+
 // set power consumption in milliwatt per color for 256 LEDs
 void set_power_consumption(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW);
+
+// set power consumption in milliwatt per color for 256 LEDs
+inline void set_power_consumption_mW(uint16_t red_mW, uint16_t green_mW, uint16_t blue_mW, uint16_t idle_mW)
+{
+    set_power_consumption(red_mW, green_mW, blue_mW, idle_mW);
+}
+
+// set power consumption in milliamps per color for a single LED
+// the default voltage is 5.0. use set_power_consumption_mW() if the voltage is different
+void set_power_consumption_mA(float red_mA, float green_mA, float blue_mA, float idle_mA);
 
 FASTLED_NAMESPACE_END
 ///@}
