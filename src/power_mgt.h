@@ -24,33 +24,6 @@ void set_max_power_in_volts_and_milliamps( uint8_t volts, uint32_t milliamps);
 /// @deprecated - use FastLED.setMaxPowerInMilliWatts
 void set_max_power_in_milliwatts( uint32_t powerInmW);
 
-/// Select a pin with an led that will be flashed to indicate that power management
-/// is pulling down the brightness
-void set_max_power_indicator_LED( uint8_t pinNumber); // zero = no indicator LED
-
-
-// Power Control 'show' and 'delay' functions
-//
-// These are drop-in replacements for FastLED.show() and FastLED.delay()
-// In order to use these, you have to actually replace your calls to
-// FastLED.show() and FastLED.delay() with these two functions.
-//
-// Example:
-//     // was: FastLED.show();
-//     // now is:
-//     show_at_max_brightness_for_power();
-//
-
-/// Similar to FastLED.show, but pre-adjusts brightness to keep below the power
-/// threshold.
-/// @deprecated this has now been moved to FastLED.show();
-void show_at_max_brightness_for_power();
-/// Similar to FastLED.delay, but pre-adjusts brightness to keep below the power
-/// threshold.
-/// @deprecated this has now been rolled into FastLED.delay();
-void delay_at_max_brightness_for_power( uint16_t ms);
-
-
 // Power Control internal helper functions
 
 /// calculate_unscaled_power_mW tells you how many milliwatts the current
