@@ -88,7 +88,7 @@ uint32_t calculate_unscaled_power_mW(const CRGB *ledbuffer, uint16_t numLeds)
     }
 
     // calculate total power at 100% brightness
-    return _calc_per_color(red32, gRed_mW) + _calc_per_color(green32, gGreen_mW) + _calc_per_color(blue32, gBlue_mW) + _calculate_idle_power_mW(numLeds);
+    return _calc_per_color(red32, gRed_mW) + _calc_per_color(green32, gGreen_mW) + _calc_per_color(blue32, gBlue_mW);
 }
 
 uint8_t calculate_max_brightness_for_power_vmA(const CRGB *ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_V, uint32_t max_power_mA)
@@ -96,13 +96,13 @@ uint8_t calculate_max_brightness_for_power_vmA(const CRGB *ledbuffer, uint16_t n
 	return calculate_max_brightness_for_power_mW(ledbuffer, numLeds, target_brightness, max_power_V * max_power_mA);
 }
 
-inline static auto _get_brightness(uint8_t target_brightness, uint32_t max_power_mW, uint32_t total_mW)
+inline static auto _get_brightness(uint8_t target_brightness, uint32_t max_power_mW, uint32_t total_mW, uint32_t idle_mW)
 {
     struct result_t {
-        uint8_t brightness;
-        uint32_t requested_power_mW;
+        uint8_t brightness; // scaled brightness
+        uint32_t requested_power_mW; // current power consumption
     };
-	uint32_t requested_power_mW = (total_mW * target_brightness) / 255;
+	uint32_t requested_power_mW = ((total_mW * target_brightness) / 255) + idle_mW;
     if (requested_power_mW > max_power_mW) {
         return result_t{static_cast<uint8_t>((max_power_mW * target_brightness) / requested_power_mW), max_power_mW};
 	}
@@ -112,18 +112,19 @@ inline static auto _get_brightness(uint8_t target_brightness, uint32_t max_power
 uint8_t calculate_max_brightness_for_power_mW(const CRGB *ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_mW)
 {
  	uint32_t total_mW = calculate_unscaled_power_mW(ledbuffer, numLeds);
-    return _get_brightness(target_brightness, max_power_mW, total_mW).brightness;
+    return _get_brightness(target_brightness, max_power_mW, total_mW, _calculate_idle_power_mW(numLeds)).brightness;
 }
 
 uint8_t _calculate_max_brightness_for_power_mW(uint8_t target_brightness, uint32_t max_power_mW, uint32_t &requested_power_mW)
 {
-    uint32_t total_mW = 0;
+    uint32_t total_mW = 0, idle_mW = 0;
     CLEDController *pCur = CLEDController::head();
 	while(pCur) {
         total_mW += calculate_unscaled_power_mW(pCur->leds(), pCur->size());
+        idle_mW += _calculate_idle_power_mW(pCur->size());
 		pCur = pCur->next();
 	}
-    auto res = _get_brightness(target_brightness, max_power_mW, total_mW);
+    auto res = _get_brightness(target_brightness, max_power_mW, total_mW, idle_mW);
     requested_power_mW = res.requested_power_mW;
     return res.brightness;
 }
