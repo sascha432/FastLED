@@ -108,6 +108,10 @@ protected:
                     os_intr_unlock();
                 }
             };
+            // locks the interrupts for the frame and unlocks them on every return. without the
+            // instance the first pixel was sent unlocked and the frame returned with the interrupts
+            // locked by the os_intr_lock() after the last pixel
+            Lock lock;
 
             start = __clock_cycles();
             uint32_t last_mark = start;
